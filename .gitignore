@@ -15,6 +15,7 @@ runs/
 *.pt
 *.onnx
 *.engine
+!models/traffic_signs_v1.pt
 
 # Datasets
 datasets/
