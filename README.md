@@ -1,2 +1,2 @@
 # DP
-AI-based ROS module for JetRacer enabling detection and classification of traffic signs and traffic lights from camera images.
+Cieľom diplomovej práce je navrhnúť, implementovať a overiť softvérový modul na báze umelej inteligencie pre vozidlo JetRacer, ktorý bude z obrazu kamery detegovať a klasifikovať zvislé dopravné značenie a prvky svetelnej signalizácie. Výstupom práce bude samostatná ROS1/ROS2 noda, ktorú bude možné ďalej využiť a rozvíjať v nadväzujúcich projektoch, pri výučbe aj vo výskumných aktivitách pracoviska.
