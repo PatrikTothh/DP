@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "models" / "traffic_signs_v1.pt"
 
 # Nacitanie modelu
+
 model = YOLO(str(MODEL_PATH))
 
 # Otvorenie kamery notebooku

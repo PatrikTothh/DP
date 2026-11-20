@@ -1,30 +1,55 @@
-# Python virtual environment
+# ==============================
+# Python
+# ==============================
+
 .venv/
 venv/
 
-# Python cache
 __pycache__/
 *.pyc
+*.pyo
 .pytest_cache/
 
-# VS Code
-.vscode/
-
-# YOLO
-runs/
-*.pt
-*.onnx
-*.engine
-!models/traffic_signs_v1.pt
-
-# Datasets
-datasets/
-data/
-
+# ==============================
 # ROS2
+# ==============================
+
 build/
 install/
 log/
 
-# System files
+# ==============================
+# YOLO / PyTorch
+# ==============================
+
+runs/
+datasets/
+
+*.pt
+*.pth
+*.onnx
+*.engine
+
+# Povolit vybrany natrenovany model
+!models/traffic_signs_v1.pt
+
+# ==============================
+# VS Code
+# ==============================
+
+.vscode/
+
+# ==============================
+# Systemove subory
+# ==============================
+
 .DS_Store
+Thumbs.db
+
+# ==============================
+# ROS2 zaznamy
+# ==============================
+
+rosbag2_*/
+*.db3
+*.mcap
