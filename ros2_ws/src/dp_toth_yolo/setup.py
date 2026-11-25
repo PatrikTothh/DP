@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'jetracer_yolo'
+package_name = 'dp_toth_yolo'
 
 setup(
     name=package_name,
@@ -24,7 +24,7 @@ setup(
     },
     entry_points={
     'console_scripts': [
-        'detector = jetracer_yolo.yolo_node:main',
+        'detector = dp_toth_yolo.yolo_node:main',
     ],
 },
 )
