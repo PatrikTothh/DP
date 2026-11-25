@@ -12,40 +12,45 @@ from vision_msgs.msg import (
 )
 
 from cv_bridge import CvBridge, CvBridgeError
-from ultralytics import YOLO
+
+from dp_toth_yolo.yolo_inference import YoloInference
 
 
-class YoloNode(Node):
+class YoloDetector(Node):
 
     def __init__(self):
 
-        # Inicializacia ROS2 nody
         super().__init__('yolo_detector')
 
-        # Konfiguracne parametre
+        # ROS2 parametre
         self.declare_parameter('model_path', '')
         self.declare_parameter('image_topic', '/image_raw')
         self.declare_parameter('confidence', 0.35)
         self.declare_parameter('image_size', 512)
         self.declare_parameter('device', '0')
 
+        # Nacitanie parametrov
         model_path = self.get_parameter('model_path').value
         image_topic = self.get_parameter('image_topic').value
+        confidence = self.get_parameter('confidence').value
+        image_size = self.get_parameter('image_size').value
+        device = self.get_parameter('device').value
 
-        self.confidence = self.get_parameter('confidence').value
-        self.image_size = self.get_parameter('image_size').value
-        self.device = self.get_parameter('device').value
-
-        # Kontrola existencie modelu
+        # Kontrola modelu
         if not model_path or not Path(model_path).is_file():
             raise FileNotFoundError(
                 f"YOLO model neexistuje: {model_path}"
             )
 
-        # Nacitanie natrenovaneho modelu
-        self.model = YOLO(model_path)
+        # Inicializacia YOLO
+        self.detector = YoloInference(
+            model_path=model_path,
+            confidence=confidence,
+            image_size=image_size,
+            device=device
+        )
 
-        # Prevod medzi ROS2 Image a OpenCV
+        # ROS2 - OpenCV konverzia
         self.bridge = CvBridge()
 
         # Publisher pre obraz s detekciami
@@ -55,7 +60,7 @@ class YoloNode(Node):
             10
         )
 
-        # Publisher pre informacie o objektoch
+        # Publisher pre detegovane objekty
         self.detection_publisher = self.create_publisher(
             Detection2DArray,
             '/yolo/detections',
@@ -71,80 +76,73 @@ class YoloNode(Node):
         )
 
         self.get_logger().info(
-            f"YOLO noda spustena. Model: {model_path}"
+            f"YOLO detector spusteny. Model: {model_path}"
         )
 
     def image_callback(self, msg):
 
-        # 1. Prevod ROS2 obrazu na OpenCV
+        # Prevod ROS2 Image na OpenCV
         try:
             frame = self.bridge.imgmsg_to_cv2(
                 msg,
                 desired_encoding='bgr8'
             )
+
         except CvBridgeError as error:
             self.get_logger().error(str(error))
             return
 
-        # 2. Detekcia objektov pomocou YOLO
-        result = self.model.predict(
-            source=frame,
-            conf=self.confidence,
-            imgsz=self.image_size,
-            device=self.device,
-            verbose=False
-        )[0]
+        # Detekcia objektov
+        result = self.detector.predict(frame)
 
-        # 3. Priprava spravy s detekciami
+        # Vytvorenie spravy s detekciami
         detections_msg = Detection2DArray()
         detections_msg.header = msg.header
 
-        for box in result.boxes:
+        if result.boxes is not None:
 
-            # Trieda a skore detekcie
-            class_id = int(box.cls[0].item())
-            confidence = float(box.conf[0].item())
+            for box in result.boxes:
 
-            # Suradnice bounding boxu
-            x1, y1, x2, y2 = box.xyxy[0].tolist()
+                class_id = int(box.cls[0].item())
+                confidence = float(box.conf[0].item())
 
-            # Vytvorenie jednej detekcie
-            detection = Detection2D()
-            detection.header = msg.header
+                x1, y1, x2, y2 = box.xyxy[0].tolist()
 
-            detection.bbox.center.position.x = (x1 + x2) / 2
-            detection.bbox.center.position.y = (y1 + y2) / 2
-            detection.bbox.center.theta = 0.0
+                # Vytvorenie detekcie
+                detection = Detection2D()
+                detection.header = msg.header
 
-            detection.bbox.size_x = x2 - x1
-            detection.bbox.size_y = y2 - y1
+                # Bounding box
+                detection.bbox.center.position.x = (x1 + x2) / 2
+                detection.bbox.center.position.y = (y1 + y2) / 2
 
-            # Informacie o klasifikacii
-            hypothesis = ObjectHypothesisWithPose()
-            hypothesis.hypothesis.class_id = str(class_id)
-            hypothesis.hypothesis.score = confidence
+                detection.bbox.size_x = x2 - x1
+                detection.bbox.size_y = y2 - y1
 
-            detection.results.append(hypothesis)
+                # Klasifikacia
+                hypothesis = ObjectHypothesisWithPose()
 
-            # Pridanie detekcie do zoznamu
-            detections_msg.detections.append(detection)
+                hypothesis.hypothesis.class_id = str(class_id)
+                hypothesis.hypothesis.score = confidence
 
-        # 4. Publikovanie detekcii
+                detection.results.append(hypothesis)
+                detections_msg.detections.append(detection)
+
+        # Publikovanie detekcii
         self.detection_publisher.publish(detections_msg)
 
-        # 5. Vykreslenie bounding boxov
+        # Vykreslenie detekcii do obrazu
         annotated_frame = result.plot()
 
-        # Prevod OpenCV obrazu na ROS2 spravu
+        # Konverzia OpenCV na ROS2 Image
         annotated_msg = self.bridge.cv2_to_imgmsg(
             annotated_frame,
             encoding='bgr8'
         )
 
-        # Zachovanie casovej znacky a identifikatora kamery
         annotated_msg.header = msg.header
 
-        # 6. Publikovanie spracovaneho obrazu
+        # Publikovanie obrazu
         self.image_publisher.publish(annotated_msg)
 
 
@@ -155,7 +153,7 @@ def main(args=None):
     node = None
 
     try:
-        node = YoloNode()
+        node = YoloDetector()
         rclpy.spin(node)
 
     except KeyboardInterrupt:

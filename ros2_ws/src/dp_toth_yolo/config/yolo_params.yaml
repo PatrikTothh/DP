@@ -1,0 +1,15 @@
+yolo_detector:
+  ros__parameters:
+
+    # YOLO model
+    model_path: "/home/patrik/DP/models/traffic_signs_v1.pt"
+
+    # Kamera
+    image_topic: "/image_raw"
+
+    # Detekcia
+    confidence: 0.35
+    image_size: 512
+
+    # GPU
+    device: "0"
