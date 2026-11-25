@@ -1,0 +1,20 @@
+image_capture:
+  ros__parameters:
+
+    image_topic: "/image_raw"
+
+    output_dir: "~/DP/datasets/captured"
+
+    # Nazov priecinka
+    session_name: "default"
+
+    # Automaticke zachytavanie
+    capture_interval: 0.5
+    auto_capture: false
+
+    # Zobrazenie obrazu
+    show_preview: true
+
+    # Ukladanie obrazkov
+    image_format: "jpg"
+    jpeg_quality: 95
