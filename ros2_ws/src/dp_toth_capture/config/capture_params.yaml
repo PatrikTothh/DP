@@ -1,20 +1,38 @@
 image_capture:
   ros__parameters:
 
+    # ----------------------------------
+    # Kamera
+    # ----------------------------------
+
     image_topic: "/image_raw"
+
+    # ----------------------------------
+    # Ukladanie obrazkov
+    # ----------------------------------
 
     output_dir: "~/DP/datasets/captured"
 
-    # Nazov priecinka
     session_name: "default"
 
+    # ----------------------------------
     # Automaticke zachytavanie
+    # ----------------------------------
+
     capture_interval: 0.5
+
     auto_capture: false
 
-    # Zobrazenie obrazu
-    show_preview: true
+    # ----------------------------------
+    # Graficke rozhranie
+    # ----------------------------------
 
-    # Ukladanie obrazkov
+    show_preview: false
+
+    # ----------------------------------
+    # Format obrazkov
+    # ----------------------------------
+
     image_format: "jpg"
+
     jpeg_quality: 95
